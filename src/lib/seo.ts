@@ -28,7 +28,7 @@ const PAGES: Record<
     path: "/",
     title: "GOLDAGRO Global Export | Indian Agro Exporter",
     description:
-      "GOLDAGRO Global Export supplies Indian spices, fresh fruits (mosambi, banana, pineapple, pomegranate) and vegetables. FOB/CIF from Nhava Sheva Mumbai.Samples on request.",
+      "GOLDAGRO Global Export supplies spices, mosambi, banana, pineapple, pomegranate and vegetables. FOB/CIF Nhava Sheva (JNPT), Mumbai. Samples on request.",
     keywords:
       "Indian spices exporter, fresh fruit exporter India, vegetable exporter Mumbai, Guntur red chilli, green cardamom, Nashik onion, mosambi, Cavendish banana, agro exporter Thane",
     image: "/images/agro/spices/dried_red_chillies.jpeg",
