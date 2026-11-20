@@ -26,7 +26,7 @@ const PAGES: Record<
 > = {
   agro: {
     path: "/",
-    title: "Indian Spices, Fruits & Vegetables Exporter | GOLDAGRO Global Export, Thane",
+    title: "GOLDAGRO Global Export | Indian Agro Exporter",
     description:
       "GOLDAGRO Global Export is a Thane-based merchant exporter of Indian spices, fresh fruits (mosambi, banana, pineapple, pomegranate) and vegetables. FOB/CIF from Nhava Sheva (JNPT), Mumbai. Samples on request.",
     keywords:
@@ -36,7 +36,7 @@ const PAGES: Record<
   },
   jewel: {
     path: "/jewellery",
-    title: "Imitation Jewellery Exporter India | Bulk Necklaces, Bridal Sets, Bangles | GOLDAGRO",
+    title: "GOLDAGRO Global Export | Imitation Jewellery Exporter",
     description:
       "Bulk imitation jewellery exporter in Thane, India: necklaces, bridal sets, bangles and earrings. Wholesale and custom designs shipped worldwide from Mumbai. Request a quotation from GOLDAGRO Global Export.",
     keywords:
