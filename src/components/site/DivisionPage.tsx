@@ -212,13 +212,15 @@ function Hero({ d }: { d: Division }) {
   return (
     <section id="home" className="relative isolate overflow-hidden">
       <img
-        src={d.hero.img}
-        alt=""
-        aria-hidden="true"
-        fetchPriority="high"
-        decoding="async"
-        className="absolute inset-0 -z-20 h-full w-full object-cover"
-      />
+  src={d.hero.img}
+  alt={
+    d.key === "agro"
+      ? "Premium dried red chillies for export by GOLDAGRO Global Export"
+      : "GOLDAGRO imitation jewellery collection for wholesale export"
+  }
+  fetchPriority="high"
+  decoding="async"
+  className="absolute inset-0 -z-20 h-full w-full object-cover"/>
       <div className="absolute inset-0 -z-10 bg-gradient-hero" />
       <div className="mx-auto max-w-7xl px-4 py-16 sm:py-28 lg:py-40">
         <p className="mb-5 text-xs uppercase tracking-[0.2em] text-sand sm:text-sm sm:tracking-[0.25em]">
