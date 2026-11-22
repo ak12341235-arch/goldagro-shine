@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite dev",
     "prebuild": "node scripts/generate-seo-files.mjs",
+    "check:legal": "node scripts/check-legal-blanks.mjs",
+    "typecheck": "tsc --noEmit",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",

@@ -41,5 +41,4 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-# A "Sitemap:" line is added automatically at build time when VITE_SITE_URL is set
-# (see scripts/generate-seo-files.mjs).
+Sitemap: https://goldagroglobalexport.com/sitemap.xml

@@ -1,29 +1,41 @@
-// Runs before `build`. Writes public/sitemap.xml and adds a Sitemap line to public/robots.txt,
-// but only when VITE_SITE_URL is set, so we never publish a sitemap that points at a wrong domain.
+// Runs before `build`. Writes public/sitemap.xml and keeps the Sitemap line in public/robots.txt in
+// sync. The site address defaults to the production domain and can be overridden with VITE_SITE_URL
+// (no trailing slash). Keep DEFAULT_SITE identical to DEFAULT_SITE_URL in src/lib/site-data.ts.
+import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const site = (process.env.VITE_SITE_URL ?? "").trim().replace(/\/+$/, "");
-if (!site) {
-  console.warn(
-    "[seo] VITE_SITE_URL is not set — skipping sitemap.xml, canonical and og:url. " +
-      "Set it in Netlify (Site settings → Environment variables), e.g. https://www.yourdomain.com",
-  );
-  process.exit(0);
+const DEFAULT_SITE = "https://goldagroglobalexport.com";
+const site = ((process.env.VITE_SITE_URL ?? "").trim() || DEFAULT_SITE).replace(/\/+$/, "");
+
+// lastmod = date of the latest commit (what actually changed), not "today" on every build.
+// Falls back to the date of the last legal-page revision if git history is unavailable.
+const FALLBACK_LASTMOD = "2026-11-21";
+let lastmod = FALLBACK_LASTMOD;
+try {
+  const d = execSync("git log -1 --format=%cs", { stdio: ["ignore", "pipe", "ignore"] })
+    .toString()
+    .trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) lastmod = d;
+} catch {
+  /* not a git checkout: keep the fallback */
 }
-const today = new Date().toISOString().slice(0, 10);
-const urls = [
-  { loc: `${site}/`, priority: "1.0" },
-  { loc: `${site}/jewellery`, priority: "0.9" },
+
+const pages = [
+  "/",
+  "/jewellery",
+  "/legal-notice",
+  "/terms",
+  "/privacy-policy",
+  "/shipping-and-claims",
+  "/disclaimer",
 ];
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
+${pages
   .map(
-    (u) => `  <url>
-    <loc>${u.loc}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>${u.priority}</priority>
+    (p) => `  <url>
+    <loc>${site}${p === "/" ? "/" : p}</loc>
+    <lastmod>${lastmod}</lastmod>
   </url>`,
   )
   .join("\n")}
@@ -32,9 +44,6 @@ ${urls
 writeFileSync("public/sitemap.xml", xml);
 
 const robotsPath = "public/robots.txt";
-let robots = readFileSync(robotsPath, "utf8")
-  .replace(/^Sitemap:.*\n?/gm, "")
-  .trimEnd();
-robots += `\n\nSitemap: ${site}/sitemap.xml\n`;
-writeFileSync(robotsPath, robots);
-console.log(`[seo] wrote sitemap.xml and robots.txt for ${site}`);
+const robots = readFileSync(robotsPath, "utf8").replace(/^Sitemap:.*\n?/gm, "").trimEnd();
+writeFileSync(robotsPath, `${robots}\n\nSitemap: ${site}/sitemap.xml\n`);
+console.log(`[seo] wrote sitemap.xml (${pages.length} URLs, lastmod ${lastmod}) for ${site}`);

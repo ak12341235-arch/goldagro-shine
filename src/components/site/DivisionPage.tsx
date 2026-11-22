@@ -15,18 +15,19 @@ import { toast, Toaster } from "sonner";
 import {
   ADDRESS,
   ABOUT_FACTS,
-  BUYER_FAQ,
   CERTS,
   EMAIL,
   GST,
   ORDER_STEPS,
   PHONES,
   TRUST_HIGHLIGHTS,
+  getFaq,
   getProductDetails,
   type Cert,
   type Division,
   type Product,
 } from "@/lib/site-data";
+import { LEGAL_PAGES } from "@/lib/legal-data";
 
 function useScrollLock(active: boolean) {
   useEffect(() => {
@@ -40,32 +41,30 @@ function useScrollLock(active: boolean) {
 }
 
 const SECURITY_MSG =
-  "Security Protocol: Direct archiving, local printing, or devtools inspection of official enterprise credentials is fully restricted.";
+  "Printing and saving are disabled while a credential is open. Use Request verified copy to receive an official copy.";
 
-function useSecurityShield() {
+// Active only while a credential is open in the viewer. This discourages casual saving and printing
+// of the preview. It is not real protection: the files are public static files. Developer tools are
+// deliberately NOT blocked (that cannot work and only gets in the way of normal visitors).
+function useSecurityShield(active: boolean) {
   useEffect(() => {
+    if (!active) return;
     const warn = () => toast.error("Restricted", { description: SECURITY_MSG, id: "security" });
     const onKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      const mod = e.ctrlKey || e.metaKey;
-      if (
-        e.key === "F12" ||
-        (mod && (k === "p" || k === "s")) ||
-        (mod && e.shiftKey && ["i", "j", "c"].includes(k))
-      ) {
+      if ((e.ctrlKey || e.metaKey) && (k === "p" || k === "s")) {
         e.preventDefault();
         e.stopPropagation();
         warn();
       }
     };
-    const onPrint = () => warn();
     window.addEventListener("keydown", onKey, true);
-    window.addEventListener("beforeprint", onPrint);
+    window.addEventListener("beforeprint", warn);
     return () => {
       window.removeEventListener("keydown", onKey, true);
-      window.removeEventListener("beforeprint", onPrint);
+      window.removeEventListener("beforeprint", warn);
     };
-  }, []);
+  }, [active]);
 }
 
 function Eyebrow({ children }: { children: string }) {
@@ -212,15 +211,16 @@ function Hero({ d }: { d: Division }) {
   return (
     <section id="home" className="relative isolate overflow-hidden">
       <img
-  src={d.hero.img}
-  alt={
-    d.key === "agro"
-      ? "Premium dried red chillies for export by GOLDAGRO Global Export"
-      : "GOLDAGRO imitation jewellery collection for wholesale export"
-  }
-  fetchPriority="high"
-  decoding="async"
-  className="absolute inset-0 -z-20 h-full w-full object-cover"/>
+        src={d.hero.img}
+        alt={
+          d.key === "agro"
+            ? "Premium dried red chillies for export by GOLDAGRO Global Export"
+            : "GOLDAGRO imitation jewellery collection for wholesale export"
+        }
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 -z-20 h-full w-full object-cover"
+      />
       <div className="absolute inset-0 -z-10 bg-gradient-hero" />
       <div className="mx-auto max-w-7xl px-4 py-16 sm:py-28 lg:py-40">
         <p className="mb-5 text-xs uppercase tracking-[0.2em] text-sand sm:text-sm sm:tracking-[0.25em]">
@@ -328,6 +328,7 @@ function CertModal({ cert, onClose }: { cert: Cert | null; onClose: () => void }
     return () => window.removeEventListener("keydown", k);
   }, [cert, onClose]);
   useScrollLock(!!cert);
+  useSecurityShield(!!cert);
   if (!cert) return null;
   const isPdf = cert.file.endsWith(".pdf");
   return (
@@ -661,7 +662,7 @@ function OrderProcess() {
   );
 }
 
-function BuyerFAQ() {
+function BuyerFAQ({ d }: { d: Division }) {
   return (
     <section id="faq" aria-labelledby="faq-heading" className="border-y bg-card py-16 sm:py-28">
       <div className="mx-auto max-w-4xl px-4">
@@ -672,7 +673,7 @@ function BuyerFAQ() {
           </h2>
         </div>
         <div className="mt-10 space-y-3">
-          {BUYER_FAQ.map((item) => (
+          {getFaq(d.key).map((item) => (
             <details
               key={item.question}
               className="group rounded-sm border bg-background p-4 sm:p-5"
@@ -840,6 +841,7 @@ function Inquiry({ d }: { d: Division }) {
     quantity: "",
     msg: "",
   });
+  const [agreed, setAgreed] = useState(false);
   const selectedCountry = COUNTRY_OPTIONS.find((c) => c.name === f.country) ?? COUNTRY_OPTIONS[0]!;
   useEffect(() => {
     const onProductSelected = (event: Event) => {
@@ -865,6 +867,12 @@ function Inquiry({ d }: { d: Division }) {
       postalValid = new RegExp(selectedCountry.postal, "i").test(f.postalCode.trim());
     else if (selectedCountry.name === "Other country")
       postalValid = f.postalCode.trim().length >= 2 && !/^([0-9])\1+$/.test(f.postalCode.trim());
+    if (!agreed) {
+      toast.error("Please accept the Terms and Privacy Policy.", {
+        description: "Tick the box above the send buttons to continue.",
+      });
+      return false;
+    }
     if (!f.name.trim() || !emailValid || !phoneValid || !postalValid || !f.port.trim() || !f.cat) {
       toast.error("Please check the required fields.", {
         description: !f.name.trim()
@@ -1061,10 +1069,30 @@ function Inquiry({ d }: { d: Division }) {
           />
         </label>
         <p className="text-xs leading-relaxed text-muted-foreground sm:col-span-2">
-          Your details are used to prepare this inquiry message. WhatsApp and Gmail will open with
-          the message filled in; you must press Send in that app. Format checks cannot confirm that
-          a phone number or postal code is active or belongs to you.
+          Your details stay on your device and are used only to prepare this inquiry message.
+          WhatsApp and Gmail will open with the message filled in; you must press Send in that app.
+          Format checks cannot confirm that a phone number or postal code is active or belongs to
+          you.
         </p>
+        <label className="flex items-start gap-3 text-sm leading-relaxed sm:col-span-2">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-1 h-5 w-5 shrink-0 accent-[var(--color-primary)]"
+          />
+          <span>
+            I have read and agree to the{" "}
+            <Link to="/terms" className="text-primary underline">
+              Terms and Conditions
+            </Link>{" "}
+            and the{" "}
+            <Link to="/privacy-policy" className="text-primary underline">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
         <button type="submit" className="btn btn-whatsapp btn-block min-w-0">
           <MessageCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
           Send Inquiry via WhatsApp
@@ -1192,7 +1220,21 @@ function Footer({ d }: { d: Division }) {
           </a>
         </div>
       </div>
-      <p className="mx-auto mt-10 max-w-7xl border-t pt-6 text-sm text-muted-foreground">
+      <nav
+        aria-label="Legal"
+        className="mx-auto mt-10 flex max-w-7xl flex-wrap gap-x-6 gap-y-1 border-t pt-6 text-sm"
+      >
+        {LEGAL_PAGES.map((p) => (
+          <Link
+            key={p.path}
+            to={p.path}
+            className="inline-flex min-h-11 items-center text-muted-foreground hover:text-primary"
+          >
+            {p.label}
+          </Link>
+        ))}
+      </nav>
+      <p className="mx-auto max-w-7xl text-sm text-muted-foreground">
         © 2026 Goldagro Global Export. All Rights Reserved.
       </p>
     </footer>
@@ -1200,7 +1242,6 @@ function Footer({ d }: { d: Division }) {
 }
 
 export function DivisionPage({ d }: { d: Division }) {
-  useSecurityShield();
   return (
     <div className={`${d.theme} min-h-screen overflow-x-clip bg-background text-foreground`}>
       <Header d={d} />
@@ -1211,7 +1252,7 @@ export function DivisionPage({ d }: { d: Division }) {
         <BuyerHighlights />
         <Collections d={d} />
         <OrderProcess />
-        <BuyerFAQ />
+        <BuyerFAQ d={d} />
         <Why d={d} />
         {d.key === "jewel" && <CrossDivision />}
         <Inquiry d={d} />

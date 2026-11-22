@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - name: Tests
+        run: bun run test
+      - name: Build
+        run: bun run build
+      # Informational until the repository is formatted once with `bun run format`.
+      - name: Lint
+        run: bun run lint
+        continue-on-error: true
+      - name: Type check
+        run: bun run typecheck
+        continue-on-error: true
+      - name: Dependency audit
+        run: bun audit
+        continue-on-error: true
+      - name: Open legal blanks
+        run: bun run check:legal

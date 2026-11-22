@@ -2,14 +2,18 @@ import {
   ADDRESS_PARTS,
   AGRO,
   BRAND,
-  BUYER_FAQ,
   EMAIL,
   GST,
   JEWEL,
   PHONES,
   SITE_URL,
+  getFaq,
   type Division,
 } from "@/lib/site-data";
+import { COMPANY, LEGAL_UPDATED_ISO } from "@/lib/legal-data";
+
+// 1200x630 share image used when a page has no better one (legal pages, 404).
+const DEFAULT_OG_IMAGE = "/images/og/og-default.jpg";
 
 type PageKey = "agro" | "jewel";
 
@@ -50,12 +54,14 @@ const abs = (path: string) => (SITE_URL ? `${SITE_URL}${path}` : undefined);
 const jsonLd = (data: unknown) =>
   JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
 
+const orgId = () => (abs("/") ? `${abs("/")}#organization` : "#organization");
+
 function organization() {
   const logo = abs("/images/logo/logo.jpeg");
   const url = abs("/");
   return {
     "@type": ["Organization", "LocalBusiness"],
-    "@id": url ? `${url}#organization` : "#organization",
+    "@id": orgId(),
     name: BRAND,
     alternateName: "GOLDAGRO",
     ...(url ? { url } : {}),
@@ -65,6 +71,10 @@ function organization() {
     email: EMAIL,
     telephone: `+${PHONES[0]!.wa}`,
     taxID: GST,
+    identifier: [
+      { "@type": "PropertyValue", propertyID: "GSTIN", value: GST },
+      { "@type": "PropertyValue", propertyID: "IEC (DGFT)", value: COMPANY.iec },
+    ],
     address: {
       "@type": "PostalAddress",
       streetAddress: ADDRESS_PARTS.street,
@@ -87,6 +97,7 @@ function organization() {
         telephone: `+${PHONES[0]!.wa}`,
         email: EMAIL,
         areaServed: "Worldwide",
+        availableLanguage: "English",
       },
     ],
   };
@@ -106,9 +117,11 @@ export function buildHead(key: PageKey) {
     organization(),
     {
       "@type": "WebSite",
+      "@id": abs("/") ? `${abs("/")}#website` : "#website",
       name: BRAND,
       ...(abs("/") ? { url: abs("/") } : {}),
       inLanguage: "en-IN",
+      publisher: { "@id": orgId() },
     },
     {
       "@type": "WebPage",
@@ -116,6 +129,9 @@ export function buildHead(key: PageKey) {
       description: p.description,
       ...(url ? { url } : {}),
       inLanguage: "en-IN",
+      isPartOf: { "@id": abs("/") ? `${abs("/")}#website` : "#website" },
+      about: { "@id": orgId() },
+      ...(image ? { primaryImageOfPage: { "@type": "ImageObject", url: image } } : {}),
     },
     {
       "@type": "ItemList",
@@ -124,7 +140,7 @@ export function buildHead(key: PageKey) {
     },
     {
       "@type": "FAQPage",
-      mainEntity: BUYER_FAQ.map((f) => ({
+      mainEntity: getFaq(key).map((f) => ({
         "@type": "Question",
         name: f.question,
         acceptedAnswer: { "@type": "Answer", text: f.answer },
@@ -146,7 +162,7 @@ export function buildHead(key: PageKey) {
       { title: p.title },
       { name: "description", content: p.description },
       { name: "keywords", content: p.keywords },
-      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
       // Geo targeting
       { name: "geo.region", content: "IN-MH" },
       { name: "geo.placename", content: "Mira Road, Thane, Maharashtra, India" },
@@ -177,6 +193,105 @@ export function buildHead(key: PageKey) {
             { rel: "canonical", href: url },
             { rel: "alternate", hrefLang: "en-IN", href: url },
             { rel: "alternate", hrefLang: "x-default", href: url },
+          ]
+        : []),
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: jsonLd({ "@context": "https://schema.org", "@graph": graph }),
+      },
+    ],
+  };
+}
+
+type LegalKey = "terms" | "privacy" | "shipping" | "disclaimer" | "notice";
+
+const LEGAL_PAGE_SEO: Record<
+  LegalKey,
+  { path: string; title: string; description: string; name: string }
+> = {
+  terms: {
+    path: "/terms",
+    name: "Terms and Conditions",
+    title: "Terms and Conditions | GOLDAGRO Global Export",
+    description:
+      "Website terms and export terms of sale of GOLDAGRO Global Export: quotations, FOB/CIF delivery, payment by T/T or L/C, documents, risk, claims, governing law.",
+  },
+  privacy: {
+    path: "/privacy-policy",
+    name: "Privacy Policy",
+    title: "Privacy Policy | GOLDAGRO Global Export",
+    description:
+      "How GOLDAGRO Global Export collects, uses, shares and protects personal information, your rights, and how to contact our Grievance Officer.",
+  },
+  shipping: {
+    path: "/shipping-and-claims",
+    name: "Shipping, Cancellation and Claims Policy",
+    title: "Shipping, Cancellation and Claims Policy | GOLDAGRO Global Export",
+    description:
+      "Shipping from Nhava Sheva (JNPT), documents, insurance, order cancellation, quality claims, returns and refunds for GOLDAGRO Global Export orders.",
+  },
+  disclaimer: {
+    path: "/disclaimer",
+    name: "Disclaimer",
+    title: "Disclaimer | GOLDAGRO Global Export",
+    description:
+      "Limits of the information on the GOLDAGRO Global Export website: indicative specifications, illustrative images, agricultural variation and imitation jewellery.",
+  },
+  notice: {
+    path: "/legal-notice",
+    name: "Legal Notice and Registrations",
+    title: "Legal Notice and Registrations | GOLDAGRO Global Export",
+    description:
+      "Business details and Indian government registrations of GOLDAGRO Global Export (GSTIN, IEC, FIEO RCMC), with links to verify them on official portals.",
+  },
+};
+
+export function buildLegalHead(key: LegalKey) {
+  const p = LEGAL_PAGE_SEO[key];
+  const url = abs(p.path);
+  const image = abs(DEFAULT_OG_IMAGE);
+  const graph: unknown[] = [
+    {
+      "@type": "WebPage",
+      name: p.name,
+      description: p.description,
+      ...(url ? { url } : {}),
+      inLanguage: "en-IN",
+      dateModified: LEGAL_UPDATED_ISO,
+      isPartOf: { "@id": abs("/") ? `${abs("/")}#website` : "#website" },
+      about: { "@id": orgId() },
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", ...(abs("/") ? { item: abs("/") } : {}) },
+        { "@type": "ListItem", position: 2, name: p.name, ...(url ? { item: url } : {}) },
+      ],
+    },
+  ];
+  return {
+    meta: [
+      { title: p.title },
+      { name: "description", content: p.description },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { property: "og:site_name", content: BRAND },
+      { property: "og:type", content: "website" },
+      { property: "og:locale", content: "en_IN" },
+      { property: "og:title", content: p.title },
+      { property: "og:description", content: p.description },
+      ...(url ? [{ property: "og:url", content: url }] : []),
+      ...(image ? [{ property: "og:image", content: image }] : []),
+      { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+      { name: "twitter:title", content: p.title },
+      { name: "twitter:description", content: p.description },
+    ],
+    links: [
+      ...(url
+        ? [
+            { rel: "canonical", href: url },
+            { rel: "alternate", hrefLang: "en-IN", href: url },
           ]
         : []),
     ],

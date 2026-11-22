@@ -9,3 +9,35 @@
   from = "/*"
   status = 200
   to = "/.netlify/functions/server"
+
+# ---------------------------------------------------------------------------------------------
+# Headers for STATIC files (images, PDFs, sitemap, ...). Netlify does not apply these to pages
+# rendered by the SSR function; those get their security headers (including the Content-Security-
+# Policy) from src/lib/security-headers.ts, which src/server.ts applies to every response.
+# ---------------------------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=31536000"
+
+# Fingerprinted build output never changes under the same name.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Images and certificate PDFs keep their file names when replaced (for example when a certificate is
+# renewed), so they must not be cached for a year.
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/.well-known/security.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"

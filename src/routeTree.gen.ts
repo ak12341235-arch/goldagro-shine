@@ -10,11 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DisclaimerRouteImport } from './routes/disclaimer'
 import { Route as JewelleryRouteImport } from './routes/jewellery'
+import { Route as LegalNoticeRouteImport } from './routes/legal-notice'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as ShippingAndClaimsRouteImport } from './routes/shipping-and-claims'
+import { Route as TermsRouteImport } from './routes/terms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisclaimerRoute = DisclaimerRouteImport.update({
+  id: '/disclaimer',
+  path: '/disclaimer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JewelleryRoute = JewelleryRouteImport.update({
@@ -22,31 +32,93 @@ const JewelleryRoute = JewelleryRouteImport.update({
   path: '/jewellery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalNoticeRoute = LegalNoticeRouteImport.update({
+  id: '/legal-notice',
+  path: '/legal-notice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingAndClaimsRoute = ShippingAndClaimsRouteImport.update({
+  id: '/shipping-and-claims',
+  path: '/shipping-and-claims',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/disclaimer': typeof DisclaimerRoute
   '/jewellery': typeof JewelleryRoute
+  '/legal-notice': typeof LegalNoticeRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/shipping-and-claims': typeof ShippingAndClaimsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/disclaimer': typeof DisclaimerRoute
   '/jewellery': typeof JewelleryRoute
+  '/legal-notice': typeof LegalNoticeRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/shipping-and-claims': typeof ShippingAndClaimsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/disclaimer': typeof DisclaimerRoute
   '/jewellery': typeof JewelleryRoute
+  '/legal-notice': typeof LegalNoticeRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/shipping-and-claims': typeof ShippingAndClaimsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/jewellery'
+  fullPaths:
+    | '/'
+    | '/disclaimer'
+    | '/jewellery'
+    | '/legal-notice'
+    | '/privacy-policy'
+    | '/shipping-and-claims'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/jewellery'
-  id: '__root__' | '/' | '/jewellery'
+  to:
+    | '/'
+    | '/disclaimer'
+    | '/jewellery'
+    | '/legal-notice'
+    | '/privacy-policy'
+    | '/shipping-and-claims'
+    | '/terms'
+  id:
+    | '__root__'
+    | '/'
+    | '/disclaimer'
+    | '/jewellery'
+    | '/legal-notice'
+    | '/privacy-policy'
+    | '/shipping-and-claims'
+    | '/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DisclaimerRoute: typeof DisclaimerRoute
   JewelleryRoute: typeof JewelleryRoute
+  LegalNoticeRoute: typeof LegalNoticeRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  ShippingAndClaimsRoute: typeof ShippingAndClaimsRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/disclaimer': {
+      id: '/disclaimer'
+      path: '/disclaimer'
+      fullPath: '/disclaimer'
+      preLoaderRoute: typeof DisclaimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/jewellery': {
       id: '/jewellery'
       path: '/jewellery'
@@ -65,12 +144,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JewelleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal-notice': {
+      id: '/legal-notice'
+      path: '/legal-notice'
+      fullPath: '/legal-notice'
+      preLoaderRoute: typeof LegalNoticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping-and-claims': {
+      id: '/shipping-and-claims'
+      path: '/shipping-and-claims'
+      fullPath: '/shipping-and-claims'
+      preLoaderRoute: typeof ShippingAndClaimsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DisclaimerRoute: DisclaimerRoute,
   JewelleryRoute: JewelleryRoute,
+  LegalNoticeRoute: LegalNoticeRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
+  ShippingAndClaimsRoute: ShippingAndClaimsRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

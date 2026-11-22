@@ -1,0 +1,6 @@
+# Security contact for goldagroglobalexport.com (RFC 9116)
+Contact: mailto:ak12341235@gmail.com
+Expires: 2027-11-20T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://goldagroglobalexport.com/.well-known/security.txt
+Policy: https://goldagroglobalexport.com/legal-notice

@@ -26,13 +26,15 @@ export const PHONES = [{ label: "+91 77388 08894", wa: "917738808894" }];
 export const EMAIL = "ak12341235@gmail.com";
 export const GST = "27HFFPK4882F1Z3";
 export const BRAND = "GOLDAGRO Global Export";
-// Set VITE_SITE_URL (e.g. https://www.yourdomain.com) in Netlify so canonical, Open Graph and
-// structured-data URLs are emitted. Left empty, those absolute-URL tags are skipped instead of
-// pointing at a wrong domain.
-export const SITE_URL: string = (
+// Canonical site origin. Used for canonical links, Open Graph URLs, JSON-LD and the sitemap.
+// Override with VITE_SITE_URL in Netlify (no trailing slash) if the primary domain ever changes.
+// Keep this value identical to DEFAULT_SITE in scripts/generate-seo-files.mjs.
+const DEFAULT_SITE_URL = "https://goldagroglobalexport.com";
+const envSiteUrl = (
   (import.meta as unknown as { env?: Record<string, string | undefined> }).env?.["VITE_SITE_URL"] ??
   ""
-).replace(/\/+$/, "");
+).trim();
+export const SITE_URL: string = (envSiteUrl || DEFAULT_SITE_URL).replace(/\/+$/, "");
 export const ADDRESS_PARTS = {
   street: "Dream House, Shop No. 6, 1st Floor, Naya Nagar",
   locality: "Mira Road (East), Thane",
@@ -43,8 +45,24 @@ export const ADDRESS_PARTS = {
 export const ADDRESS =
   "Dream House, Shop No. 6, 1st Floor, Naya Nagar, Mira Road (East), Thane 401107, Maharashtra, India";
 
+export type FaqItem = { question: string; answer: string };
+
 // Content below follows the supplied GOLDAGRO HTML. Verify commercial terms with the client before publishing.
-export const BUYER_FAQ = [
+// Answers lead with the direct answer so search engines and AI assistants can quote them as written.
+const FAQ_ABOUT: FaqItem[] = [
+  {
+    question: "Who is GOLDAGRO Global Export?",
+    answer:
+      "GOLDAGRO Global Export is an Indian merchant exporter based in Thane (Mira Road East), Maharashtra, run as a proprietorship by Khan Asif Mohd Arif. It supplies Indian spices, fresh fruits and vegetables, and imitation jewellery to international B2B buyers from Nhava Sheva (JNPT), Mumbai.",
+  },
+  {
+    question: "How can I verify GOLDAGRO's registrations?",
+    answer:
+      "GOLDAGRO's GST registration, Importer-Exporter Code (IEC) and FIEO RCMC are listed under Corporate Credentials with their numbers. Check them on the issuing portals (GST portal, DGFT, FIEO), or request a verified copy by email. The Legal Notice page lists all registration details.",
+  },
+];
+
+const FAQ_TERMS: FaqItem[] = [
   {
     question: "What is the minimum order?",
     answer: "Usually one 20ft container. Smaller trial orders may be possible, ask us.",
@@ -66,12 +84,63 @@ export const BUYER_FAQ = [
     answer:
       "Loading time is confirmed in your quotation and depends on the product, quantity and season. Sea transit time depends on your destination port.",
   },
+];
+
+const FAQ_HOW_TO: FaqItem = {
+  question: "How do I send an inquiry?",
+  answer:
+    "Fill in the inquiry form on this page. It prepares a message with your product, quantity and destination port that opens in WhatsApp or Gmail for you to send. You can also email or WhatsApp GOLDAGRO directly. Specifications, grades and availability are confirmed per lot before order.",
+};
+
+const FAQ_AGRO: FaqItem[] = [
   {
-    question: "Which documents do you provide?",
+    question: "Which agro products does GOLDAGRO export?",
     answer:
-      "Commercial invoice, packing list, bill of lading, certificate of origin, phytosanitary certificate (issued per shipment), and lab reports on request.",
+      "Spices (dry red chilli, red chilli powder, green cardamom, nutmeg and mace, sesame seeds), vegetables (Nashik red onions, spinach, lemons, green peas, sweet corn) and fruits (mosambi, G-9 Cavendish bananas, oranges, pineapple, apples). Availability is seasonal and confirmed per lot.",
+  },
+  {
+    question: "Which documents do you provide for agro shipments?",
+    answer:
+      "Commercial invoice, packing list, bill of lading, certificate of origin and a phytosanitary certificate issued per shipment. Lab reports are available on request.",
+  },
+  {
+    question: "Where do the products come from?",
+    answer:
+      "Origin depends on the product, for example Guntur (Andhra Pradesh) for red chilli, Idukki (Kerala) for green cardamom and Nashik (Maharashtra) for red onions. The origin is shown in each product's specification panel.",
+  },
+  {
+    question: "How are fresh fruits shipped?",
+    answer:
+      "In containerised sea freight from Nhava Sheva (JNPT), in temperature-managed shipments where the product needs it. Packing, size grade and maturity are confirmed per shipment.",
   },
 ];
+
+const FAQ_JEWEL: FaqItem[] = [
+  {
+    question: "What jewellery does GOLDAGRO export?",
+    answer:
+      "Imitation (fashion) jewellery: necklaces, bridal sets, bangles and earrings, supplied in bulk, with custom designs on request.",
+  },
+  {
+    question: "Is the jewellery made of real gold or silver?",
+    answer:
+      "No. These are imitation pieces. Materials, plating and finish differ by design and are confirmed in your quotation.",
+  },
+  {
+    question: "Which documents do you provide for jewellery shipments?",
+    answer:
+      "Commercial invoice, packing list, bill of lading and certificate of origin. Tell us about any test reports or compliance documents your destination market requires before you order.",
+  },
+];
+
+export function getFaq(key: "agro" | "jewel"): FaqItem[] {
+  return [
+    ...FAQ_ABOUT,
+    ...FAQ_TERMS,
+    ...(key === "agro" ? FAQ_AGRO : FAQ_JEWEL),
+    FAQ_HOW_TO,
+  ];
+}
 
 export const ORDER_STEPS = [
   { title: "Inquiry", body: "Tell us product, quantity and destination port." },
